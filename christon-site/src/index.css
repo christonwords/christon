@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  @apply bg-black text-zinc-200 antialiased;
+}
+
+.container-pro {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+.card {
+  @apply bg-zinc-900/60 border border-zinc-800 rounded-xl shadow-glow backdrop-blur-sm;
+}
+
+.heading {
+  @apply text-white font-semibold tracking-tight;
+}
+
+.subtle {
+  @apply text-zinc-400;
+}
+
+.btn {
+  @apply inline-flex items-center gap-2 rounded-lg px-4 py-2 border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 transition-colors;
+}
+
+.btn-primary {
+  @apply border-brand-500 bg-brand-500/10 hover:bg-brand-500/20 text-brand-300;
+}
