@@ -18,22 +18,26 @@ function App() {
 
   useEffect(() => {
     if (!vantaRef.current) return;
-    vantaInstance.current = VANTA.WAVES({
-      el: vantaRef.current,
-      THREE,
-      mouseControls: true,
-      touchControls: true,
-      gyroControls: false,
-      minHeight: 200.0,
-      minWidth: 200.0,
-      scale: 1.0,
-      scaleMobile: 1.0,
-      color: 0x111111,
-      shininess: 35.0,
-      waveHeight: 15.0,
-      waveSpeed: 0.75,
-      zoom: 0.85,
-    });
+    try {
+      vantaInstance.current = VANTA.WAVES({
+        el: vantaRef.current,
+        THREE,
+        mouseControls: true,
+        touchControls: true,
+        gyroControls: false,
+        minHeight: 200.0,
+        minWidth: 200.0,
+        scale: 1.0,
+        scaleMobile: 1.0,
+        color: 0x111111,
+        shininess: 35.0,
+        waveHeight: 15.0,
+        waveSpeed: 0.75,
+        zoom: 0.85,
+      });
+    } catch (e) {
+      console.warn('Vanta init failed, continuing without background:', e);
+    }
     return () => {
       if (vantaInstance.current) vantaInstance.current.destroy();
     };
@@ -41,7 +45,11 @@ function App() {
 
   return (
     <div className="relative min-h-screen">
-      <div ref={vantaRef} className="fixed inset-0 -z-10 opacity-70" />
+      <div
+        ref={vantaRef}
+        className="fixed inset-0 opacity-70"
+        style={{ zIndex: -1, pointerEvents: 'none' }}
+      />
       <header className="sticky top-0 z-30 border-b border-zinc-800/60 bg-black/50 backdrop-blur supports-[backdrop-filter]:bg-black/30">
         <div className="container-pro flex items-center justify-between py-4">
           <a href="#" className="heading text-xl">Christon</a>
