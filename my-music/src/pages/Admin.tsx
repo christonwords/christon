@@ -3,7 +3,7 @@ import { upsertFile } from '../lib/github'
 
 export default function Admin() {
   const [owner, setOwner] = useState('')
-  const [repo, setRepo] = useState('')
+  const [repo, setRepo] = useState('christon')
   const [branch, setBranch] = useState('main')
   const [token, setToken] = useState('')
   const [json, setJson] = useState('')
