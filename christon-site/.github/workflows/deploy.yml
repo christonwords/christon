@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ main ]
+    branches: [ cursor/build-christon-s-hip-hop-artist-website-9234 ]
   workflow_dispatch:
 
 permissions:
