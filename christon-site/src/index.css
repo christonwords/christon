@@ -19,7 +19,7 @@ body {
 }
 
 .card {
-  @apply bg-zinc-900/60 border border-zinc-800 rounded-xl shadow-glow backdrop-blur-sm;
+  @apply bg-zinc-900/60 border border-zinc-800 rounded-xl backdrop-blur-sm;
 }
 
 .heading {
