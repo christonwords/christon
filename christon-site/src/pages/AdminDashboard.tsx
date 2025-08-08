@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react';
-import { auth, db, uploadFileAndGetUrl } from '../lib/firebase';
+import { auth, db, uploadFileAndGetUrl, firebaseReady } from '../lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { addDoc, collection } from 'firebase/firestore';
 
 export function AdminDashboard() {
+  if (!firebaseReady) {
+    return <div className="card p-6"><div className="heading text-lg">Admin</div><div className="subtle text-sm">Firebase is not configured. Set VITE_FIREBASE_* envs in GitHub repo Secrets to enable admin uploads.</div></div>;
+  }
+
   const [authorized, setAuthorized] = useState(false);
   const [tab, setTab] = useState<'news' | 'unreleased' | 'merch' | 'production'>('news');
 
-  useEffect(() => onAuthStateChanged(auth, (u) => setAuthorized(!!u)), []);
+  useEffect(() => onAuthStateChanged(auth!, (u) => setAuthorized(!!u)), []);
 
   if (!authorized) {
     return <div className="card p-6"><div className="heading text-lg">Admin</div><div className="subtle">Please login from the header.</div></div>;
@@ -36,7 +40,7 @@ function NewsForm() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
-    await addDoc(collection(db, 'news'), { title, body, createdAt: new Date().toISOString() });
+    await addDoc(collection(db!, 'news'), { title, body, createdAt: new Date().toISOString() });
     setTitle(''); setBody(''); setSubmitting(false);
   }
 
@@ -60,7 +64,7 @@ function UnreleasedForm() {
     setSubmitting(true);
     let audioUrl = '';
     if (file) audioUrl = await uploadFileAndGetUrl(file, 'unreleased');
-    await addDoc(collection(db, 'unreleased'), { title, notes, audioUrl, createdAt: new Date().toISOString() });
+    await addDoc(collection(db!, 'unreleased'), { title, notes, audioUrl, createdAt: new Date().toISOString() });
     setTitle(''); setNotes(''); setFile(null); setSubmitting(false);
   }
 
@@ -86,7 +90,7 @@ function MerchForm() {
     setSubmitting(true);
     let imageUrl = '';
     if (image) imageUrl = await uploadFileAndGetUrl(image, 'merch');
-    await addDoc(collection(db, 'merch'), { title, price, link, imageUrl, createdAt: new Date().toISOString() });
+    await addDoc(collection(db!, 'merch'), { title, price, link, imageUrl, createdAt: new Date().toISOString() });
     setTitle(''); setPrice(''); setLink(''); setImage(null); setSubmitting(false);
   }
 
@@ -114,7 +118,7 @@ function ProductionForm() {
     let audioUrl = '';
     if (image) imageUrl = await uploadFileAndGetUrl(image, 'production');
     if (audio) audioUrl = await uploadFileAndGetUrl(audio, 'production');
-    await addDoc(collection(db, 'production'), { title, imageUrl, audioUrl, createdAt: new Date().toISOString() });
+    await addDoc(collection(db!, 'production'), { title, imageUrl, audioUrl, createdAt: new Date().toISOString() });
     setTitle(''); setImage(null); setAudio(null); setSubmitting(false);
   }
 

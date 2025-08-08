@@ -1,8 +1,9 @@
 import useSWR from 'swr';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db, firebaseReady } from '../lib/firebase';
 
 async function fetchBeats() {
+  if (!firebaseReady || !db) return [] as any[];
   const q = query(collection(db, 'production'), orderBy('createdAt', 'desc'));
   const snap = await getDocs(q);
   return snap.docs.map(d => ({ id: d.id, ...(d.data() as any) }));
@@ -14,6 +15,7 @@ export function Production() {
   return (
     <div className="card p-6">
       <h2 className="heading text-2xl mb-4">Production Suite</h2>
+      {!firebaseReady && <div className="subtle text-sm">Connect Firebase to showcase beats and production.</div>}
       {isLoading && <div className="subtle">Loading…</div>}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {(data || []).map((b: any) => (

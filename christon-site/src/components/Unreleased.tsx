@@ -1,8 +1,9 @@
 import useSWR from 'swr';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db, firebaseReady } from '../lib/firebase';
 
 async function fetchUnreleased() {
+  if (!firebaseReady || !db) return [] as any[];
   const q = query(collection(db, 'unreleased'), orderBy('createdAt', 'desc'));
   const snap = await getDocs(q);
   return snap.docs.map(d => ({ id: d.id, ...(d.data() as any) }));
@@ -14,6 +15,7 @@ export function Unreleased() {
   return (
     <div className="card p-6">
       <h2 className="heading text-2xl mb-4">Unreleased</h2>
+      {!firebaseReady && <div className="subtle text-sm">Connect Firebase to manage unreleased tracks.</div>}
       {isLoading && <div className="subtle">Loading…</div>}
       <div className="space-y-4">
         {(data || []).map((t: any) => (
