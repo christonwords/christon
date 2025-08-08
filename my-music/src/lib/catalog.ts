@@ -32,7 +32,8 @@ export type Catalog = {
 }
 
 export async function loadCatalog(): Promise<Catalog> {
-  const res = await fetch('/catalog.json', { cache: 'no-store' })
+  const url = `${import.meta.env.BASE_URL}catalog.json`
+  const res = await fetch(url, { cache: 'no-store' })
   if (!res.ok) throw new Error('Failed to load catalog')
   return res.json()
 }

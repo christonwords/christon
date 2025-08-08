@@ -4,7 +4,7 @@ import { upsertFile } from '../lib/github'
 export default function Admin() {
   const [owner, setOwner] = useState('')
   const [repo, setRepo] = useState('christon')
-  const [branch, setBranch] = useState('main')
+  const [branch, setBranch] = useState('gh-pages')
   const [token, setToken] = useState('')
   const [json, setJson] = useState('')
   const [status, setStatus] = useState<string | null>(null)
@@ -16,7 +16,7 @@ export default function Admin() {
       const contentBase64 = btoa(unescape(encodeURIComponent(parsed)))
       await upsertFile({
         repo: { owner, repo, branch },
-        path: 'public/catalog.json',
+        path: (branch === 'gh-pages' ? 'catalog.json' : 'public/catalog.json'),
         contentBase64,
         message: 'Update catalog via Admin UI',
         token,

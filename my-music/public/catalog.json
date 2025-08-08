@@ -5,8 +5,8 @@
       "title": "Intro",
       "artist": "You",
       "durationSec": 92,
-      "audioUrl": "/audio/intro.mp3",
-      "coverUrl": "/covers/cover1.jpg",
+      "audioUrl": "audio/intro.mp3",
+      "coverUrl": "covers/cover1.jpg",
       "plays": 1000000000
     },
     {
@@ -14,8 +14,8 @@
       "title": "Main Single",
       "artist": "You",
       "durationSec": 185,
-      "audioUrl": "/audio/single.mp3",
-      "coverUrl": "/covers/cover2.jpg",
+      "audioUrl": "audio/single.mp3",
+      "coverUrl": "covers/cover2.jpg",
       "plays": 420000000
     }
   ],
@@ -24,11 +24,11 @@
       "id": "a1",
       "title": "Debut",
       "artist": "You",
-      "coverUrl": "/covers/cover1.jpg",
+      "coverUrl": "covers/cover1.jpg",
       "year": 2025,
       "tracks": [
-        { "id": "t1", "title": "Intro", "artist": "You", "durationSec": 92, "audioUrl": "/audio/intro.mp3", "coverUrl": "/covers/cover1.jpg", "plays": 1000000000 },
-        { "id": "t2", "title": "Main Single", "artist": "You", "durationSec": 185, "audioUrl": "/audio/single.mp3", "coverUrl": "/covers/cover2.jpg", "plays": 420000000 }
+        { "id": "t1", "title": "Intro", "artist": "You", "durationSec": 92, "audioUrl": "audio/intro.mp3", "coverUrl": "covers/cover1.jpg", "plays": 1000000000 },
+        { "id": "t2", "title": "Main Single", "artist": "You", "durationSec": 185, "audioUrl": "audio/single.mp3", "coverUrl": "covers/cover2.jpg", "plays": 420000000 }
       ]
     }
   ],
@@ -37,7 +37,7 @@
       "id": "p1",
       "title": "Top Hits",
       "description": "The bangers",
-      "coverUrl": "/covers/cover2.jpg",
+      "coverUrl": "covers/cover2.jpg",
       "trackIds": ["t2", "t1"]
     }
   ]
