@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>REBEL</title>
+  <style>
+    :root {
+      --bg: #0b0d10;
+      --fg: #e6f1ff;
+      --accent: #00e0ff;
+      --accent2: #ff3d81;
+      --gold: #ffdf5a;
+      --danger: #ff5a5a;
+      --ok: #46ff9a;
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: radial-gradient(1000px 600px at 50% 30%, #131722 0%, var(--bg) 60%, #080a0c 100%);
+      color: var(--fg);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      letter-spacing: 0.5px;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+      overflow: hidden;
+    }
+
+    .wrap {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      gap: 12px;
+    }
+
+    .frame {
+      position: relative;
+      padding: 10px 12px 14px 12px;
+      border-radius: 12px;
+      background:
+        linear-gradient(180deg, #1a1f2b 0%, #0d1117 80%) padding-box,
+        linear-gradient(180deg, rgba(255,255,255,0.15), rgba(255,255,255,0.02)) border-box;
+      border: 1px solid rgba(255,255,255,0.09);
+      box-shadow:
+        0 30px 60px rgba(0, 0, 0, 0.6),
+        inset 0 0 0 1px rgba(255,255,255,0.04);
+    }
+
+    canvas {
+      display: block;
+      image-rendering: optimizeSpeed;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      background: transparent;
+    }
+
+    .ui-row {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      opacity: 0.9;
+      font-size: 12px;
+    }
+
+    .brand {
+      font-weight: 900;
+      color: var(--accent);
+      text-shadow: 0 0 6px rgba(0,224,255,0.5), 0 0 18px rgba(0,224,255,0.25);
+      letter-spacing: 2px;
+    }
+
+    .hint {
+      opacity: 0.7;
+    }
+
+    .btnbar {
+      display: none;
+      gap: 8px;
+    }
+    @media (max-width: 640px) {
+      .ui-row { font-size: 11px; }
+      .btnbar { display: flex; }
+    }
+
+    .btn {
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.05);
+      padding: 6px 10px;
+      border-radius: 8px;
+      color: var(--fg);
+    }
+
+    .title {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+    }
+
+    .title-inner {
+      text-align: center;
+      line-height: 1.1;
+      pointer-events: auto;
+      padding: 16px 22px;
+      border-radius: 12px;
+      background: rgba(0,0,0,0.45);
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(2px);
+    }
+
+    .game-title {
+      margin: 0 0 8px 0;
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: 6px;
+      color: var(--gold);
+      text-shadow:
+        0 2px 0 rgba(0,0,0,0.6),
+        0 0 12px rgba(255,223,90,0.35),
+        0 0 30px rgba(255,223,90,0.2);
+    }
+
+    .subtitle { opacity: 0.9; font-size: 12px; margin-bottom: 8px; }
+
+    .kbd { display: inline-block; padding: 2px 6px; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; background: rgba(255,255,255,0.06); }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      display: none;
+      place-items: center;
+      pointer-events: none;
+    }
+    .overlay.show { display: grid; }
+
+    .toast {
+      position: absolute;
+      bottom: -36px;
+      left: 0; right: 0;
+      text-align: center;
+      opacity: 0.8;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="frame">
+      <div class="ui-row" style="margin-bottom:8px;">
+        <div class="brand">REBEL</div>
+        <div class="hint">WASD/Arrows • Fire <span class="kbd">Z</span>/<span class="kbd">Space</span> • Pause <span class="kbd">P</span></div>
+        <div class="btnbar">
+          <button class="btn" id="btnLeft">◀︎</button>
+          <button class="btn" id="btnRight">▶︎</button>
+          <button class="btn" id="btnFire">●</button>
+        </div>
+      </div>
+      <canvas id="game" width="256" height="144" aria-label="REBEL game canvas" role="img"></canvas>
+      <div class="title" id="title">
+        <div class="title-inner">
+          <h1 class="game-title">REBEL</h1>
+          <div class="subtitle">A tiny pixel arcade</div>
+          <div style="opacity:0.85; font-size:12px; margin-top:6px;">Press <span class="kbd">Enter</span> to start</div>
+        </div>
+        <div class="toast">Tip: Toggle Fullscreen with <span class="kbd">F</span></div>
+      </div>
+      <div class="overlay" id="gameover">
+        <div class="title-inner">
+          <div class="game-title" style="font-size:22px; letter-spacing:4px; color: var(--danger);">GAME OVER</div>
+          <div class="subtitle">Press <span class="kbd">Enter</span> to try again</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // REBEL - single file pixel arcade
+    (function() {
+      const VIRTUAL_WIDTH = 256;
+      const VIRTUAL_HEIGHT = 144;
+      const TARGET_FPS = 60;
+      const FRAME_MS = 1000 / TARGET_FPS;
+
+      const canvas = document.getElementById('game');
+      const ctx = canvas.getContext('2d', { alpha: true });
+
+      // Scale canvas to keep crisp pixels with integer scaling
+      function fitCanvas() {
+        const pad = 16 * 2 + 2; // frame paddings + border
+        const ww = window.innerWidth - pad;
+        const wh = window.innerHeight - (pad + 46); // ui row space
+        const scale = Math.max(1, Math.floor(Math.min(ww / VIRTUAL_WIDTH, wh / VIRTUAL_HEIGHT)));
+        canvas.style.width = (VIRTUAL_WIDTH * scale) + 'px';
+        canvas.style.height = (VIRTUAL_HEIGHT * scale) + 'px';
+      }
+      window.addEventListener('resize', fitCanvas);
+      fitCanvas();
+
+      // Input
+      const keyDown = new Set();
+      const keyPressed = new Set();
+      window.addEventListener('keydown', (e) => {
+        if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) {
+          e.preventDefault();
+        }
+        keyDown.add(e.key.toLowerCase());
+        keyPressed.add(e.key.toLowerCase());
+        if (!audioUnlocked) { tryUnlockAudio(); }
+      }, { passive: false });
+      window.addEventListener('keyup', (e) => {
+        keyDown.delete(e.key.toLowerCase());
+      });
+
+      // Mobile buttons
+      const btnLeft = document.getElementById('btnLeft');
+      const btnRight = document.getElementById('btnRight');
+      const btnFire = document.getElementById('btnFire');
+      if (btnLeft && btnRight && btnFire) {
+        const setHeld = (key, held) => {
+          if (held) keyDown.add(key); else keyDown.delete(key);
+        };
+        btnLeft.addEventListener('pointerdown', () => setHeld('arrowleft', true));
+        btnLeft.addEventListener('pointerup', () => setHeld('arrowleft', false));
+        btnLeft.addEventListener('pointerleave', () => setHeld('arrowleft', false));
+
+        btnRight.addEventListener('pointerdown', () => setHeld('arrowright', true));
+        btnRight.addEventListener('pointerup', () => setHeld('arrowright', false));
+        btnRight.addEventListener('pointerleave', () => setHeld('arrowright', false));
+
+        btnFire.addEventListener('pointerdown', () => keyPressed.add(' '));
+      }
+
+      // Audio (simple WebAudio beeps)
+      let audioCtx = null;
+      let audioUnlocked = false;
+      function tryUnlockAudio() {
+        if (audioUnlocked) return;
+        try {
+          audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+          const buffer = audioCtx.createBuffer(1, 1, 22050);
+          const src = audioCtx.createBufferSource();
+          src.buffer = buffer;
+          src.connect(audioCtx.destination);
+          src.start(0);
+          if (audioCtx.state === 'suspended') audioCtx.resume();
+          audioUnlocked = true;
+        } catch (_) { /* ignore */ }
+      }
+
+      function beep({ freq = 440, duration = 0.06, type = 'square', gain = 0.05, slideTo = null } = {}) {
+        if (!audioUnlocked) return;
+        const now = audioCtx.currentTime;
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        o.type = type;
+        o.frequency.setValueAtTime(freq, now);
+        if (slideTo) {
+          o.frequency.exponentialRampToValueAtTime(Math.max(1, slideTo), now + duration);
+        }
+        g.gain.setValueAtTime(0, now);
+        g.gain.linearRampToValueAtTime(gain, now + 0.005);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+        o.connect(g);
+        g.connect(audioCtx.destination);
+        o.start(now);
+        o.stop(now + duration + 0.02);
+      }
+
+      // Random helpers
+      const rand = (a, b) => Math.random() * (b - a) + a;
+      const rndInt = (a, b) => Math.floor(rand(a, b + 1));
+      const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+      // Game state
+      const STATE = { MENU: 0, PLAY: 1, PAUSE: 2, GAMEOVER: 3 };
+      let gameState = STATE.MENU;
+
+      const titleEl = document.getElementById('title');
+      const gameoverEl = document.getElementById('gameover');
+
+      // Entities
+      const player = {
+        x: VIRTUAL_WIDTH / 2,
+        y: VIRTUAL_HEIGHT - 22,
+        width: 7,
+        height: 7,
+        speed: 75,
+        fireCooldownMs: 120,
+        lastFireMs: 0,
+        invincibleMs: 0,
+        alive: true
+      };
+
+      const bullets = [];
+      const enemies = [];
+      const particles = [];
+
+      let lives = 3;
+      let score = 0;
+      let timeMs = 0;
+      let spawnTimerMs = 0;
+      let difficultyLevel = 1;
+
+      // Stars background (parallax)
+      const starsFar = Array.from({ length: 40 }, () => ({ x: Math.random() * VIRTUAL_WIDTH, y: Math.random() * VIRTUAL_HEIGHT, s: 0.5 }));
+      const starsNear = Array.from({ length: 30 }, () => ({ x: Math.random() * VIRTUAL_WIDTH, y: Math.random() * VIRTUAL_HEIGHT, s: 1 }));
+
+      function resetGame() {
+        bullets.length = 0;
+        enemies.length = 0;
+        particles.length = 0;
+        lives = 3;
+        score = 0;
+        timeMs = 0;
+        spawnTimerMs = 0;
+        difficultyLevel = 1;
+        player.x = VIRTUAL_WIDTH / 2;
+        player.y = VIRTUAL_HEIGHT - 22;
+        player.invincibleMs = 1000;
+        player.alive = true;
+      }
+
+      // Spawning enemies
+      function spawnEnemy() {
+        const type = Math.random() < 0.7 ? 'grunt' : (Math.random() < 0.5 ? 'swoop' : 'zig');
+        const enemy = { id: crypto.randomUUID ? crypto.randomUUID() : String(Math.random()), type, x: rand(8, VIRTUAL_WIDTH - 8), y: -10, vx: 0, vy: rand(18, 28) + difficultyLevel * 2, hp: 1, w: 7, h: 7, t: 0 };
+        if (type === 'swoop') enemy.vx = rand(-12, 12);
+        if (type === 'zig') { enemy.vx = rand(20, 28) * (Math.random() < 0.5 ? -1 : 1); enemy.vy *= 0.9; }
+        enemies.push(enemy);
+      }
+
+      function explode(x, y, color = '#fffa8a', count = 10) {
+        for (let i = 0; i < count; i++) {
+          particles.push({ x, y, vx: rand(-40, 40), vy: rand(-60, 0), life: rand(220, 420), age: 0, color, size: rndInt(1, 2) });
+        }
+      }
+
+      // Shooting
+      function tryFire(nowMs) {
+        if (!player.alive) return;
+        const want = keyDown.has(' ') || keyDown.has('z');
+        const pressed = keyPressed.has(' ') || keyPressed.has('z');
+        if (!want && !pressed) return;
+        if (nowMs - player.lastFireMs < player.fireCooldownMs) return;
+        player.lastFireMs = nowMs;
+        bullets.push({ x: player.x, y: player.y - 6, vx: 0, vy: -160, w: 1, h: 4, color: '#46ff9a' });
+        bullets.push({ x: player.x - 2, y: player.y - 6, vx: 0, vy: -160, w: 1, h: 4, color: '#46ff9a' });
+        bullets.push({ x: player.x + 2, y: player.y - 6, vx: 0, vy: -160, w: 1, h: 4, color: '#46ff9a' });
+        beep({ freq: 900, duration: 0.05, gain: 0.03, type: 'square' });
+      }
+
+      // Collision
+      function rectsOverlap(a, b) {
+        return a.x - a.w/2 < b.x + b.w/2 && a.x + a.w/2 > b.x - b.w/2 && a.y - a.h/2 < b.y + b.h/2 && a.y + a.h/2 > b.y - b.h/2;
+      }
+
+      // Drawing helpers (pixel shapes)
+      function pset(x, y, color) {
+        ctx.fillStyle = color; ctx.fillRect(x, y, 1, 1);
+      }
+      function box(x, y, w, h, color) {
+        ctx.fillStyle = color; ctx.fillRect(Math.round(x - w/2), Math.round(y - h/2), w, h);
+      }
+      function ship(x, y, colorA = '#00e0ff', colorB = '#e6f1ff') {
+        // Tiny 7x7 pixel rebel ship
+        const px = Math.round(x) - 3;
+        const py = Math.round(y) - 3;
+        const dots = [
+          [0,3,colorA],[6,3,colorA],
+          [1,2,colorA],[5,2,colorA],
+          [2,1,colorA],[4,1,colorA],
+          [3,0,colorB],
+          [2,3,colorB],[3,3,colorB],[4,3,colorB],
+          [3,4,colorB],[3,5,colorB]
+        ];
+        for (const [dx,dy,c] of dots) pset(px+dx, py+dy, c);
+      }
+      function enemySprite(e) {
+        const x = Math.round(e.x) - 3;
+        const y = Math.round(e.y) - 3;
+        if (e.type === 'grunt') {
+          const c1 = '#ff3d81', c2 = '#ffd1e1';
+          const d = [[3,0,c1],[2,1,c1],[3,1,c2],[4,1,c1],[1,2,c1],[2,2,c2],[3,2,c2],[4,2,c2],[5,2,c1],[2,3,c1],[3,3,c2],[4,3,c1]];
+          for (const p of d) pset(x+p[0], y+p[1], p[2]);
+        } else if (e.type === 'swoop') {
+          const c1 = '#ffa83d', c2 = '#fff1cf';
+          const d = [[2,0,c1],[3,0,c1],[1,1,c1],[2,1,c2],[3,1,c2],[4,1,c1],[0,2,c1],[1,2,c2],[2,2,c2],[3,2,c2],[4,2,c1],[2,3,c1]];
+          for (const p of d) pset(x+p[0], y+p[1], p[2]);
+        } else {
+          const c1 = '#7c5cff', c2 = '#e8e4ff';
+          const d = [[3,0,c1],[2,1,c1],[3,1,c2],[4,1,c1],[1,2,c1],[2,2,c2],[3,2,c1],[4,2,c2],[5,2,c1],[2,3,c1],[3,3,c2],[4,3,c1]];
+          for (const p of d) pset(x+p[0], y+p[1], p[2]);
+        }
+      }
+
+      function heart(x, y, color = '#ff5a84') {
+        const px = Math.round(x) - 3; const py = Math.round(y) - 3;
+        const d = [[1,0,color],[2,0,color],[4,0,color],[5,0,color],[0,1,color],[1,1,color],[2,1,color],[3,1,color],[4,1,color],[5,1,color],[6,1,color],[0,2,color],[1,2,color],[2,2,color],[3,2,color],[4,2,color],[5,2,color],[6,2,color],[1,3,color],[2,3,color],[3,3,color],[4,3,color],[5,3,color],[2,4,color],[3,4,color],[4,4,color],[3,5,color]];
+        for (const p of d) pset(px+p[0], py+p[1], p[2]);
+      }
+
+      // Render HUD
+      function drawHUD() {
+        // Top bar background gradient
+        for (let i = 0; i < 8; i++) {
+          ctx.fillStyle = `rgba(0,0,0,${0.1 + i*0.05})`;
+          ctx.fillRect(0, i, VIRTUAL_WIDTH, 1);
+        }
+        // Score
+        ctx.fillStyle = '#9cc7ff';
+        ctx.font = '6px monospace';
+        ctx.textBaseline = 'top';
+        ctx.fillText('SCORE', 4, 2);
+        ctx.fillStyle = '#e6f1ff';
+        ctx.fillText(String(score).padStart(6, '0'), 40, 2);
+        // Lives
+        for (let i = 0; i < lives; i++) heart(230 + i*10, 6);
+      }
+
+      function drawStars(dt) {
+        ctx.fillStyle = 'rgba(0,0,0,0.65)';
+        ctx.fillRect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+        for (const s of starsFar) {
+          s.y += 8 * dt; if (s.y >= VIRTUAL_HEIGHT) s.y -= VIRTUAL_HEIGHT;
+          ctx.fillStyle = 'rgba(180,200,255,0.45)';
+          ctx.fillRect(Math.round(s.x), Math.round(s.y), 1, 1);
+        }
+        for (const s of starsNear) {
+          s.y += 16 * dt; if (s.y >= VIRTUAL_HEIGHT) s.y -= VIRTUAL_HEIGHT;
+          ctx.fillStyle = 'rgba(255,255,255,0.8)';
+          ctx.fillRect(Math.round(s.x), Math.round(s.y), 1, 1);
+        }
+      }
+
+      function update(dt, nowMs) {
+        if (gameState !== STATE.PLAY) return;
+        timeMs += dt * 1000;
+        spawnTimerMs += dt * 1000;
+
+        // Increase difficulty gradually
+        if (timeMs > difficultyLevel * 8000) difficultyLevel += 1;
+
+        // Player movement
+        const left = keyDown.has('arrowleft') || keyDown.has('a');
+        const right = keyDown.has('arrowright') || keyDown.has('d');
+        const up = keyDown.has('arrowup') || keyDown.has('w');
+        const down = keyDown.has('arrowdown') || keyDown.has('s');
+        const speed = player.speed + difficultyLevel * 1.2;
+        if (left) player.x -= speed * dt;
+        if (right) player.x += speed * dt;
+        if (up) player.y -= speed * dt;
+        if (down) player.y += speed * dt;
+        player.x = clamp(player.x, 6, VIRTUAL_WIDTH - 6);
+        player.y = clamp(player.y, 18, VIRTUAL_HEIGHT - 10);
+
+        tryFire(nowMs);
+
+        // Spawn enemies
+        const spawnEveryMs = Math.max(350 - difficultyLevel * 18, 120);
+        while (spawnTimerMs >= spawnEveryMs) {
+          spawnTimerMs -= spawnEveryMs;
+          spawnEnemy();
+        }
+
+        // Update bullets
+        for (let i = bullets.length - 1; i >= 0; i--) {
+          const b = bullets[i];
+          b.y += b.vy * dt;
+          if (b.y < -8) bullets.splice(i, 1);
+        }
+
+        // Update enemies and collisions
+        for (let i = enemies.length - 1; i >= 0; i--) {
+          const e = enemies[i];
+          e.t += dt;
+          if (e.type === 'swoop') e.vx += Math.sin(e.t * 6) * 10 * dt;
+          if (e.type === 'zig') e.vx *= (1 - 0.5 * dt);
+          e.x += e.vx * dt;
+          e.y += e.vy * dt;
+
+          // Wall bounce for zig
+          if (e.type === 'zig') {
+            if (e.x < 6 || e.x > VIRTUAL_WIDTH - 6) e.vx *= -1;
+          }
+
+          // Check out of bounds
+          if (e.y > VIRTUAL_HEIGHT + 10) {
+            enemies.splice(i, 1);
+            // Penalize when enemies slip by
+            if (player.alive) {
+              lives -= 1; player.invincibleMs = 1000; beep({ freq: 120, duration: 0.08, gain: 0.05, slideTo: 60, type: 'sawtooth' });
+              if (lives <= 0) endGame();
+            }
+            continue;
+          }
+
+          // Bullet hits
+          for (let j = bullets.length - 1; j >= 0; j--) {
+            const b = bullets[j];
+            if (rectsOverlap({ x: b.x, y: b.y, w: b.w, h: b.h }, { x: e.x, y: e.y, w: e.w, h: e.h })) {
+              bullets.splice(j, 1);
+              e.hp -= 1;
+              explode(e.x, e.y, '#ffdca8', 6);
+              beep({ freq: 220, duration: 0.05, gain: 0.05, slideTo: 130, type: 'triangle' });
+              if (e.hp <= 0) {
+                enemies.splice(i, 1);
+                score += 10 + difficultyLevel * 2;
+                explode(e.x, e.y, '#fff', 14);
+                beep({ freq: 140, duration: 0.09, gain: 0.08, slideTo: 90, type: 'square' });
+              }
+              break;
+            }
+          }
+
+          // Player collision
+          if (player.alive && player.invincibleMs <= 0 && rectsOverlap({ x: player.x, y: player.y, w: player.width, h: player.height }, { x: e.x, y: e.y, w: e.w, h: e.h })) {
+            enemies.splice(i, 1);
+            explode(player.x, player.y, '#ff8aa8', 18);
+            lives -= 1;
+            player.invincibleMs = 1200;
+            beep({ freq: 100, duration: 0.12, gain: 0.08, slideTo: 60, type: 'sawtooth' });
+            if (lives <= 0) endGame();
+          }
+        }
+
+        // Update particles
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.age += dt * 1000;
+          p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 60 * dt;
+          if (p.age >= p.life) particles.splice(i, 1);
+        }
+
+        // Timers
+        if (player.invincibleMs > 0) player.invincibleMs -= dt * 1000;
+      }
+
+      function endGame() {
+        gameState = STATE.GAMEOVER;
+        gameoverEl.classList.add('show');
+        beep({ freq: 60, duration: 0.3, gain: 0.1, type: 'square' });
+      }
+
+      function draw() {
+        // Background
+        drawStars(lastDt);
+
+        // Entities
+        if (player.alive) {
+          const flicker = player.invincibleMs > 0 ? Math.floor((player.invincibleMs / 50)) % 2 === 0 : true;
+          if (flicker) ship(player.x, player.y);
+        }
+
+        // Bullets
+        for (const b of bullets) box(b.x, b.y, b.w, b.h, b.color);
+
+        // Enemies
+        for (const e of enemies) enemySprite(e);
+
+        // Particles
+        for (const p of particles) box(p.x, p.y, p.size, p.size, p.color);
+
+        // HUD
+        drawHUD();
+
+        // Pause hint
+        if (gameState === STATE.PAUSE) {
+          ctx.fillStyle = 'rgba(0,0,0,0.55)';
+          ctx.fillRect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+          ctx.fillStyle = '#fff';
+          ctx.font = '8px monospace';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('PAUSED', VIRTUAL_WIDTH/2, VIRTUAL_HEIGHT/2);
+        }
+      }
+
+      // Fullscreen toggle
+      function toggleFullscreen() {
+        const el = document.documentElement;
+        if (!document.fullscreenElement) {
+          if (el.requestFullscreen) el.requestFullscreen();
+        } else {
+          if (document.exitFullscreen) document.exitFullscreen();
+        }
+      }
+
+      // Game loop
+      let lastTime = performance.now();
+      let acc = 0;
+      let lastDt = 1 / TARGET_FPS;
+
+      function frame(now) {
+        const raw = now - lastTime; // ms
+        lastTime = now;
+        acc += raw;
+
+        // Fixed update
+        while (acc >= FRAME_MS) {
+          const dt = FRAME_MS / 1000;
+          update(dt, now);
+          acc -= FRAME_MS;
+          lastDt = dt;
+        }
+
+        // Render
+        ctx.imageSmoothingEnabled = false;
+        draw();
+
+        // One-frame key presses
+        keyPressed.clear();
+
+        requestAnimationFrame(frame);
+      }
+
+      // Menu interactions
+      function startGame() {
+        titleEl.style.display = 'none';
+        gameoverEl.classList.remove('show');
+        resetGame();
+        gameState = STATE.PLAY;
+        beep({ freq: 220, duration: 0.08, gain: 0.06, type: 'square' });
+      }
+
+      window.addEventListener('keydown', (e) => {
+        const k = e.key.toLowerCase();
+        if (k === 'enter') {
+          if (gameState === STATE.MENU || gameState === STATE.GAMEOVER) startGame();
+        } else if (k === 'p') {
+          if (gameState === STATE.PLAY) { gameState = STATE.PAUSE; }
+          else if (gameState === STATE.PAUSE) { gameState = STATE.PLAY; }
+        } else if (k === 'f') {
+          toggleFullscreen();
+        }
+      });
+
+      // Show title
+      titleEl.style.display = 'grid';
+
+      // Start loop
+      requestAnimationFrame(frame);
+    })();
+  </script>
+</body>
+</html>
